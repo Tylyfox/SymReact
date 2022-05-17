@@ -2,7 +2,9 @@
 
 namespace App\Repository;
 
+use App\Entity\Customer;
 use App\Entity\Invoice;
+use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\OptimisticLockException;
 use Doctrine\ORM\ORMException;
@@ -23,6 +25,19 @@ class InvoiceRepository extends ServiceEntityRepository
         parent::__construct($registry, Invoice::class);
     }
 
+    public function findNextChrono(User $user)
+    {
+        return $this->createQueryBuilder('i')
+                ->select("i.chrono")
+                ->innerJoin(Customer::class, "c",  "WITH", "i.customer = c.id"  )
+                ->where("c.user = :user")
+                ->setParameter("user", $user)
+                ->orderBy("i.chrono", "DESC")
+                ->setMaxResults(1)
+                ->getQuery()
+                ->getSingleScalarResult() + 1
+            ;
+    }
     /**
      * @throws ORMException
      * @throws OptimisticLockException
@@ -47,22 +62,13 @@ class InvoiceRepository extends ServiceEntityRepository
         }
     }
 
+
     // /**
     //  * @return Invoice[] Returns an array of Invoice objects
     //  */
-    /*
-    public function findByExampleField($value)
-    {
-        return $this->createQueryBuilder('i')
-            ->andWhere('i.exampleField = :val')
-            ->setParameter('val', $value)
-            ->orderBy('i.id', 'ASC')
-            ->setMaxResults(10)
-            ->getQuery()
-            ->getResult()
-        ;
-    }
-    */
+
+
+
 
     /*
     public function findOneBySomeField($value): ?Invoice
